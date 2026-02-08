@@ -5,7 +5,6 @@ Configures CORS, routes, and application lifecycle events.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import settings
-from database import init_db
 from middleware import SecurityHeadersMiddleware
 
 # Create FastAPI application
@@ -15,11 +14,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Database initialization on startup
-@app.on_event("startup")
-async def startup_event():
-    """Initialize database tables on application startup."""
-    await init_db()
+# Note: Database initialization removed for serverless compatibility
+# Tables should be created via migration scripts or manual setup
+# Startup events don't work in Vercel's serverless environment
 
 # Add security headers middleware
 app.add_middleware(SecurityHeadersMiddleware)
