@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Disallow authentication pages from being indexed
+Disallow: /auth/
+
+# Sitemap location
+Sitemap: https://your-domain.vercel.app/sitemap.xml
