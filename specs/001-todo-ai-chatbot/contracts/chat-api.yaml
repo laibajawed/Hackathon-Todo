@@ -1,0 +1,449 @@
+openapi: 3.1.0
+info:
+  title: Todo AI Chatbot API
+  description: |
+    REST API for the Todo AI Chatbot feature. Provides a conversational interface
+    for managing todo tasks through natural language.
+
+    **Authentication**: All endpoints require JWT Bearer token in Authorization header.
+
+    **Base URL**: `http://localhost:8000` (development)
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.example.com
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: chat
+    description: Chat conversation endpoints
+  - name: history
+    description: Conversation history endpoints
+
+paths:
+  /api/{user_id}/chat:
+    post:
+      tags:
+        - chat
+      summary: Send message to chatbot
+      description: |
+        Send a natural language message to the AI chatbot. The chatbot will interpret
+        the intent, invoke appropriate MCP tools for task operations, and return a
+        conversational response.
+
+        **Flow**:
+        1. User message is added to conversation history
+        2. Groq LLM interprets intent and determines tool calls
+        3. MCP tools are invoked to perform task operations
+        4. AI generates response based on tool results
+        5. Response is added to conversation history
+
+        **Performance**: Typically responds in <3 seconds
+      operationId: sendChatMessage
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID (must match authenticated user from JWT)
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              createTask:
+                summary: Create a task
+                value:
+                  message: "Add a task to buy groceries"
+              listTasks:
+                summary: List tasks
+                value:
+                  message: "Show me my pending tasks"
+              completeTask:
+                summary: Complete a task
+                value:
+                  message: "Mark the grocery task as done"
+      responses:
+        '200':
+          description: Successful response from chatbot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              examples:
+                taskCreated:
+                  summary: Task created successfully
+                  value:
+                    response: "I've added 'buy groceries' to your todo list."
+                    conversation_id: 42
+                    tokens_used: 156
+                    tool_calls:
+                      - tool: "todo_create_task"
+                        arguments:
+                          user_id: "123e4567-e89b-12d3-a456-426614174000"
+                          title: "buy groceries"
+                        result:
+                          success: true
+                          task:
+                            id: "789e4567-e89b-12d3-a456-426614174999"
+                            title: "buy groceries"
+                            status: "pending"
+                taskListed:
+                  summary: Tasks listed successfully
+                  value:
+                    response: "You have 3 pending tasks: 1) buy groceries, 2) call mom, 3) finish report."
+                    conversation_id: 42
+                    tokens_used: 203
+                    tool_calls:
+                      - tool: "todo_list_tasks"
+                        arguments:
+                          user_id: "123e4567-e89b-12d3-a456-426614174000"
+                          status: "pending"
+                        result:
+                          total: 3
+                          tasks:
+                            - id: "789e4567-e89b-12d3-a456-426614174999"
+                              title: "buy groceries"
+                              status: "pending"
+        '400':
+          description: Bad request (invalid input)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: true
+                message: "Message cannot be empty"
+                code: "INVALID_INPUT"
+        '401':
+          description: Unauthorized (invalid or missing JWT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: true
+                message: "Invalid or expired authentication token"
+                code: "UNAUTHORIZED"
+        '403':
+          description: Forbidden (user_id mismatch)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: true
+                message: "User ID in path does not match authenticated user"
+                code: "FORBIDDEN"
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: true
+                message: "Rate limit exceeded. Please try again in 60 seconds."
+                code: "RATE_LIMIT_EXCEEDED"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: true
+                message: "An unexpected error occurred. Please try again."
+                code: "INTERNAL_ERROR"
+        '503':
+          description: Service unavailable (AI service down)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: true
+                message: "AI service is temporarily unavailable. Please try again in a moment."
+                code: "SERVICE_UNAVAILABLE"
+
+  /api/{user_id}/chat/history:
+    get:
+      tags:
+        - history
+      summary: Get conversation history
+      description: |
+        Retrieve the conversation history for the current active conversation.
+        Returns messages in chronological order.
+      operationId: getChatHistory
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID (must match authenticated user from JWT)
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of messages to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          description: Number of messages to skip (for pagination)
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Conversation history retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No active conversation found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: true
+                message: "No active conversation found for this user"
+                code: "NOT_FOUND"
+
+  /api/{user_id}/chat/new:
+    post:
+      tags:
+        - chat
+      summary: Start new conversation
+      description: |
+        Start a new conversation, deactivating the current active conversation.
+        Useful for starting fresh without logging out.
+      operationId: startNewConversation
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID (must match authenticated user from JWT)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: New conversation created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation_id:
+                    type: integer
+                    example: 43
+                  message:
+                    type: string
+                    example: "New conversation started"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token obtained from Better Auth authentication.
+        Include in Authorization header as: `Bearer <token>`
+
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Natural language message from user
+          example: "Add a task to buy groceries"
+      example:
+        message: "Show me my pending tasks"
+
+    ChatResponse:
+      type: object
+      required:
+        - response
+        - conversation_id
+        - tokens_used
+      properties:
+        response:
+          type: string
+          description: AI assistant's response
+          example: "I've added 'buy groceries' to your todo list."
+        conversation_id:
+          type: integer
+          description: ID of the conversation
+          example: 42
+        tokens_used:
+          type: integer
+          description: Total tokens used in this exchange (user + assistant)
+          example: 156
+        tool_calls:
+          type: array
+          description: List of MCP tools invoked (for debugging/transparency)
+          items:
+            $ref: '#/components/schemas/ToolCall'
+
+    ToolCall:
+      type: object
+      required:
+        - tool
+        - arguments
+        - result
+      properties:
+        tool:
+          type: string
+          description: Name of the MCP tool invoked
+          example: "todo_create_task"
+        arguments:
+          type: object
+          description: Arguments passed to the tool
+          additionalProperties: true
+          example:
+            user_id: "123e4567-e89b-12d3-a456-426614174000"
+            title: "buy groceries"
+        result:
+          type: object
+          description: Result returned by the tool
+          additionalProperties: true
+          example:
+            success: true
+            task:
+              id: "789e4567-e89b-12d3-a456-426614174999"
+              title: "buy groceries"
+              status: "pending"
+
+    HistoryResponse:
+      type: object
+      required:
+        - conversation_id
+        - messages
+        - total_messages
+      properties:
+        conversation_id:
+          type: integer
+          description: ID of the conversation
+          example: 42
+        messages:
+          type: array
+          description: List of messages in chronological order
+          items:
+            $ref: '#/components/schemas/MessageItem'
+        total_messages:
+          type: integer
+          description: Total number of messages in conversation
+          example: 15
+        has_more:
+          type: boolean
+          description: Whether there are more messages (for pagination)
+          example: false
+
+    MessageItem:
+      type: object
+      required:
+        - id
+        - role
+        - content
+        - created_at
+      properties:
+        id:
+          type: integer
+          description: Message ID
+          example: 123
+        role:
+          type: string
+          enum: [user, assistant, system]
+          description: Message sender role
+          example: "user"
+        content:
+          type: string
+          description: Message content
+          example: "Add a task to buy groceries"
+        created_at:
+          type: string
+          format: date-time
+          description: Message creation timestamp (ISO 8601)
+          example: "2026-01-23T14:30:00Z"
+        token_count:
+          type: integer
+          description: Estimated token count for this message
+          example: 12
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+        - code
+      properties:
+        error:
+          type: boolean
+          description: Always true for error responses
+          example: true
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Invalid or expired authentication token"
+        code:
+          type: string
+          description: Machine-readable error code
+          enum:
+            - INVALID_INPUT
+            - UNAUTHORIZED
+            - FORBIDDEN
+            - NOT_FOUND
+            - RATE_LIMIT_EXCEEDED
+            - INTERNAL_ERROR
+            - SERVICE_UNAVAILABLE
+          example: "UNAUTHORIZED"
+        details:
+          type: object
+          description: Additional error details (optional)
+          additionalProperties: true

@@ -1,0 +1,392 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schemas/tool-definition.json",
+  "version": "1.0.0",
+  "server": {
+    "name": "todo_mcp",
+    "description": "MCP server for todo task management operations",
+    "version": "1.0.0",
+    "transport": "stdio"
+  },
+  "tools": [
+    {
+      "name": "todo_list_tasks",
+      "description": "List tasks for a specific user with optional status filtering. Returns all tasks or filters by pending/completed status. Use this when the user asks to see their tasks, view their todo list, or check what needs to be done.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "User ID (UUID string)",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "completed"],
+            "description": "Filter by task status: 'pending' for incomplete tasks, 'completed' for finished tasks. Omit to return all tasks."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of tasks to return",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20
+          }
+        },
+        "required": ["user_id"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "description": "Total number of tasks returned"
+          },
+          "count": {
+            "type": "integer",
+            "description": "Count of tasks in response"
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Task UUID"
+                },
+                "user_id": {
+                  "type": "string",
+                  "description": "Owner user UUID"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Task title"
+                },
+                "description": {
+                  "type": ["string", "null"],
+                  "description": "Task description (optional)"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["pending", "completed"],
+                  "description": "Task status"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Creation timestamp (ISO 8601)"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Last update timestamp (ISO 8601)"
+                }
+              }
+            }
+          }
+        }
+      },
+      "annotations": {
+        "title": "List Todo Tasks",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "examples": [
+        {
+          "description": "List all tasks for a user",
+          "input": {
+            "user_id": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        },
+        {
+          "description": "List only pending tasks",
+          "input": {
+            "user_id": "123e4567-e89b-12d3-a456-426614174000",
+            "status": "pending"
+          }
+        },
+        {
+          "description": "List first 10 completed tasks",
+          "input": {
+            "user_id": "123e4567-e89b-12d3-a456-426614174000",
+            "status": "completed",
+            "limit": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "todo_create_task",
+      "description": "Create a new task for a specific user. Use this when the user wants to add a task, create a todo, or remember something. Extracts the task title from natural language and optionally includes a description.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "User ID (UUID string)",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "title": {
+            "type": "string",
+            "description": "Task title (1-200 characters)",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional task description (max 2000 characters)",
+            "maxLength": 2000
+          }
+        },
+        "required": ["user_id", "title"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether task was created successfully"
+          },
+          "task": {
+            "type": "object",
+            "description": "Created task object",
+            "properties": {
+              "id": {"type": "string"},
+              "user_id": {"type": "string"},
+              "title": {"type": "string"},
+              "description": {"type": ["string", "null"]},
+              "status": {"type": "string", "enum": ["pending"]},
+              "created_at": {"type": "string", "format": "date-time"},
+              "updated_at": {"type": "string", "format": "date-time"}
+            }
+          }
+        }
+      },
+      "annotations": {
+        "title": "Create Todo Task",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "examples": [
+        {
+          "description": "Create a simple task",
+          "input": {
+            "user_id": "123e4567-e89b-12d3-a456-426614174000",
+            "title": "buy groceries"
+          }
+        },
+        {
+          "description": "Create a task with description",
+          "input": {
+            "user_id": "123e4567-e89b-12d3-a456-426614174000",
+            "title": "call doctor",
+            "description": "schedule annual checkup appointment"
+          }
+        }
+      ]
+    },
+    {
+      "name": "todo_update_task",
+      "description": "Update a task's title and/or description. Use this when the user wants to change, modify, or edit an existing task. Requires task identification (by title match or explicit ID).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "User ID (UUID string)",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "task_id": {
+            "type": "string",
+            "description": "Task ID (UUID string)",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "title": {
+            "type": "string",
+            "description": "New task title (1-200 characters)",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "description": "New task description (max 2000 characters)",
+            "maxLength": 2000
+          }
+        },
+        "required": ["user_id", "task_id"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether task was updated successfully"
+          },
+          "task": {
+            "type": "object",
+            "description": "Updated task object"
+          }
+        }
+      },
+      "annotations": {
+        "title": "Update Todo Task",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "examples": [
+        {
+          "description": "Update task title",
+          "input": {
+            "user_id": "123e4567-e89b-12d3-a456-426614174000",
+            "task_id": "789e4567-e89b-12d3-a456-426614174999",
+            "title": "buy organic groceries"
+          }
+        },
+        {
+          "description": "Update task description",
+          "input": {
+            "user_id": "123e4567-e89b-12d3-a456-426614174000",
+            "task_id": "789e4567-e89b-12d3-a456-426614174999",
+            "description": "get milk, eggs, and bread from Whole Foods"
+          }
+        }
+      ]
+    },
+    {
+      "name": "todo_toggle_task_status",
+      "description": "Toggle a task's status between pending and completed. If the task is pending, marks it as completed. If completed, marks it as pending. Use this when the user says they finished a task, completed something, or wants to mark a task as done. Also use when uncompleting a task.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "User ID (UUID string)",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "task_id": {
+            "type": "string",
+            "description": "Task ID (UUID string)",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          }
+        },
+        "required": ["user_id", "task_id"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether status was toggled successfully"
+          },
+          "task": {
+            "type": "object",
+            "description": "Updated task object with new status"
+          }
+        }
+      },
+      "annotations": {
+        "title": "Toggle Todo Task Status",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "examples": [
+        {
+          "description": "Mark task as complete",
+          "input": {
+            "user_id": "123e4567-e89b-12d3-a456-426614174000",
+            "task_id": "789e4567-e89b-12d3-a456-426614174999"
+          }
+        }
+      ]
+    },
+    {
+      "name": "todo_delete_task",
+      "description": "Permanently delete a task. Use this when the user wants to remove, delete, or get rid of a task. This is a destructive operation that cannot be undone. Consider confirming with the user before invoking this tool.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "User ID (UUID string)",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "task_id": {
+            "type": "string",
+            "description": "Task ID (UUID string)",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          }
+        },
+        "required": ["user_id", "task_id"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether task was deleted successfully"
+          },
+          "message": {
+            "type": "string",
+            "description": "Confirmation message"
+          },
+          "deleted_task_id": {
+            "type": "string",
+            "description": "ID of the deleted task"
+          }
+        }
+      },
+      "annotations": {
+        "title": "Delete Todo Task",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "examples": [
+        {
+          "description": "Delete a task",
+          "input": {
+            "user_id": "123e4567-e89b-12d3-a456-426614174000",
+            "task_id": "789e4567-e89b-12d3-a456-426614174999"
+          }
+        }
+      ]
+    }
+  ],
+  "errorHandling": {
+    "patterns": [
+      {
+        "error": "Task not found or access denied",
+        "code": "NOT_FOUND",
+        "description": "Task doesn't exist or doesn't belong to the user",
+        "retryable": false
+      },
+      {
+        "error": "Invalid UUID format",
+        "code": "VALIDATION_ERROR",
+        "description": "user_id or task_id is not a valid UUID",
+        "retryable": false
+      },
+      {
+        "error": "Database connection error",
+        "code": "DATABASE_ERROR",
+        "description": "Temporary database connectivity issue",
+        "retryable": true
+      }
+    ]
+  },
+  "securityConsiderations": {
+    "userIsolation": "All tools enforce user isolation by requiring user_id and verifying ownership before operations",
+    "inputSanitization": "All text inputs are HTML-escaped to prevent XSS attacks",
+    "sqlInjectionPrevention": "SQLAlchemy parameterized queries prevent SQL injection",
+    "rateLimiting": "Tools are stateless; rate limiting handled at API gateway level"
+  }
+}

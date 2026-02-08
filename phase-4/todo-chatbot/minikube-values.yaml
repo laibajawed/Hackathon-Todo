@@ -1,0 +1,99 @@
+# Sample values for Minikube deployment
+# Copy this file and update with your actual values
+
+# Backend configuration
+backend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: todo-backend
+    pullPolicy: Never  # Use Never for local Minikube images
+    tag: "latest"
+
+  service:
+    type: ClusterIP
+    port: 8001
+    targetPort: 8001
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+  env:
+    JWT_ALGORITHM: "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+
+# Frontend configuration
+frontend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: todo-frontend
+    pullPolicy: Never  # Use Never for local Minikube images
+    tag: "latest"
+
+  service:
+    type: ClusterIP
+    port: 3001
+    targetPort: 3001
+
+  resources:
+    limits:
+      cpu: 300m
+      memory: 256Mi
+    requests:
+      cpu: 150m
+      memory: 128Mi
+
+  env:
+    # Backend service URL - uses Kubernetes internal DNS
+    NEXT_PUBLIC_API_URL: "http://todo-chatbot-backend:8001"
+
+# Secrets configuration
+# IMPORTANT: Replace these with your actual values!
+# Generate secure secrets with: openssl rand -base64 32
+secrets:
+  # Your Neon PostgreSQL connection string
+  # Format: postgresql://username:password@host:port/database?sslmode=require
+  databaseUrl: "postgresql://user:password@ep-xxx.us-east-2.aws.neon.tech/todo_db?sslmode=require"
+
+  # JWT secret for token signing (generate with: openssl rand -base64 32)
+  jwtSecret: "CHANGE-THIS-TO-A-SECURE-RANDOM-STRING"
+
+  # Better Auth secret (generate with: openssl rand -base64 32)
+  betterAuthSecret: "CHANGE-THIS-TO-A-SECURE-RANDOM-STRING"
+
+# Service Account
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+# Pod Security
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Ingress (disabled by default for Minikube)
+# Enable if you want to use Minikube ingress addon
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: todo.local
+  tls: []

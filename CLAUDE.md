@@ -208,3 +208,38 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
+
+## Active Technologies
+- Python 3.13+ + `uv` (dependency management), `datetime` (standard library) (001-console-todo-app)
+- Python list/dict (in-memory, no external database per Phase I scope) (001-console-todo-app)
+- FastAPI + SQLModel + PyJWT + bcrypt (backend framework, ORM, auth) (001-fullstack-web-todo)
+- Next.js 16+ (App Router) + TypeScript + Tailwind CSS (frontend framework) (001-fullstack-web-todo)
+- Neon Serverless PostgreSQL (cloud-hosted PostgreSQL) (001-fullstack-web-todo)
+- Python 3.13+ (backend), TypeScript/Next.js 16+ (frontend) (001-todo-ai-chatbot)
+- Neon Serverless PostgreSQL (existing from Phase 2, extended with Conversation and Message models) (001-todo-ai-chatbot)
+
+## Recent Changes
+- 001-console-todo-app: Added Python 3.13+ + `uv` (dependency management), `datetime` (standard library)
+- 001-fullstack-web-todo: Implemented full-stack web application with FastAPI backend, Next.js frontend, JWT authentication, and Neon PostgreSQL database
+
+## Phase 2 Development Notes
+
+### Backend (FastAPI)
+- Located in `phase-2/backend/`
+- Run with: `uvicorn main:app --reload --port 8000`
+- API docs available at: http://localhost:8000/docs
+- Requires `.env` file with DATABASE_URL and JWT_SECRET
+
+### Frontend (Next.js)
+- Located in `phase-2/frontend/`
+- Run with: `npm run dev`
+- Available at: http://localhost:3000
+- Requires `.env.local` file with NEXT_PUBLIC_API_URL and BETTER_AUTH_SECRET
+
+### Key Implementation Details
+- JWT tokens stored in localStorage (frontend)
+- User isolation enforced at database query level (user_id filtering)
+- XSS prevention via html.escape() on all user inputs
+- CORS configured for localhost:3000
+- Responsive design with Tailwind CSS (320px-1920px)
+- All CRUD operations implemented with optimistic UI updates

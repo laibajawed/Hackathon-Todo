@@ -1,0 +1,22 @@
+[project]
+name = "phase-1-console"
+version = "0.1.0"
+description = "Phase I Console Todo Application - In-memory CLI todo list"
+requires-python = ">=3.13"
+authors = [
+    {name = "Todo Team"}
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q"
+testpaths = ["tests"]
