@@ -20,8 +20,8 @@ class Settings(BaseSettings):
     # Environment
     ENVIRONMENT: str = "development"
 
-    # CORS
-    CORS_ORIGINS: str = "http://localhost:3000"
+    # CORS - Allow multiple origins (comma-separated)
+    CORS_ORIGINS: str = "http://localhost:3000,https://hackathon-todo-kappa.vercel.app,https://*.vercel.app"
 
     # AI Configuration (Phase 3 Chatbot)
     # Primary: Google Gemini
