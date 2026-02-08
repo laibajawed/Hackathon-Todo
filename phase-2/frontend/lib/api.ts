@@ -8,7 +8,8 @@ if (!process.env.NEXT_PUBLIC_API_URL) {
   console.error("NEXT_PUBLIC_API_URL is not configured. Please set it in .env.local");
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Remove trailing slash from API URL to prevent double slashes
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
 /**
  * Make an authenticated API request.
