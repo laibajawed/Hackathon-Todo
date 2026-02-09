@@ -6,6 +6,13 @@
 // Remove trailing slash from API_URL to prevent double slashes
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
+// Debug logging for production
+if (typeof window !== 'undefined') {
+  console.log('[API Client] Environment:', process.env.NEXT_PUBLIC_ENVIRONMENT);
+  console.log('[API Client] API_URL:', API_URL);
+  console.log('[API Client] Raw env var:', process.env.NEXT_PUBLIC_API_URL);
+}
+
 /**
  * Make an authenticated API request.
  *
