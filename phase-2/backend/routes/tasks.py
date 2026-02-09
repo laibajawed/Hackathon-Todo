@@ -6,11 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database import get_session
-from models import Task, TaskStatus
 from auth.dependencies import get_current_user_id
 from pydantic import BaseModel, Field
+from models import Task, TaskStatus
 from uuid import UUID
 from datetime import datetime
+
 from typing import Optional, List
 import html
 
