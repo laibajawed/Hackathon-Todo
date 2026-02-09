@@ -21,21 +21,9 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
 
     # CORS - Allow multiple origins (comma-separated)
-    CORS_ORIGINS: str = "http://localhost:3000,https://hackathon-todo-kappa.vercel.app,https://*.vercel.app"
+    CORS_ORIGINS: str = "http://localhost:3000,https://hackathon-todo-kappa.vercel.app,https://hackathon-todo-9uuf.vercel.app"
 
-    # AI Configuration (Phase 3 Chatbot)
-    # Primary: Google Gemini
-    GEMINI_API_KEY: str = ""
-    AI_MODEL: str = "gemini/gemini-2.5-flash"
-    AI_MAX_TOKENS: int = 1000
-    AI_TEMPERATURE: float = 0.7
-
-    # Fallback: Groq
-    GROQ_API_KEY: str = ""
-    GROQ_MODEL: str = "groq/llama-3.1-8b-instant"
-    GROQ_MAX_TOKENS: int = 1000
-    GROQ_TEMPERATURE: float = 0.7
-
+    
     class Config:
         env_file = ".env"
         case_sensitive = True
