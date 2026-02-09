@@ -42,10 +42,14 @@ async def https_redirect_middleware(request: Request, call_next):
     """
     Redirect HTTP to HTTPS in production.
     Only enforces HTTPS when ENVIRONMENT is set to 'production'.
+    Checks X-Forwarded-Proto header for proxy compatibility.
     """
     if settings.ENVIRONMENT == "production":
-        # Check if request is HTTP (not HTTPS)
-        if request.url.scheme == "http":
+        # Check X-Forwarded-Proto header (set by reverse proxies like HF Spaces)
+        forwarded_proto = request.headers.get("X-Forwarded-Proto", "")
+
+        # Only redirect if the original request was HTTP (not behind a proxy)
+        if forwarded_proto == "http" or (not forwarded_proto and request.url.scheme == "http"):
             # Redirect to HTTPS
             https_url = request.url.replace(scheme="https")
             return RedirectResponse(url=str(https_url), status_code=301)
