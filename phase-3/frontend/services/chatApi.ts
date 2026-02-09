@@ -4,7 +4,8 @@
  * This module provides functions for interacting with the chat API.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Remove trailing slash from API_URL to prevent double slashes
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, "");
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
