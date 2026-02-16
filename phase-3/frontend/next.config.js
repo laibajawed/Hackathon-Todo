@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Static export for Netlify deployment
+  output: 'export',
+
   // Enable React strict mode for better development experience
   reactStrictMode: true,
 
