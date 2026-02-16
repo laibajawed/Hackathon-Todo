@@ -68,7 +68,7 @@ export default function TaskForm({ onSubmit }: TaskFormProps) {
             maxLength={200}
             required
             disabled={loading}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 text-gray-900 bg-white"
           />
         </div>
 
@@ -84,7 +84,7 @@ export default function TaskForm({ onSubmit }: TaskFormProps) {
             maxLength={2000}
             rows={3}
             disabled={loading}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 text-gray-900 bg-white"
           />
         </div>
 

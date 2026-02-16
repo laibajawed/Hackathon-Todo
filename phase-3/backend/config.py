@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
 
     # CORS
-    CORS_ORIGINS: str = "http://localhost:3000"
+    CORS_ORIGINS: str = "http://localhost:3000,https://hackathon-todo-3-eosin.vercel.app"
 
     # AI Configuration (Phase 3 Chatbot)
     # Groq only (no fallback)
@@ -50,7 +50,9 @@ class Settings(BaseSettings):
     @property
     def cors_origins_list(self) -> List[str]:
         """Parse CORS_ORIGINS string into list."""
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
+        if self.CORS_ORIGINS == "*":
+            return ["*"]
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
 
 
 # Global settings instance
