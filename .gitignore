@@ -97,3 +97,6 @@ phase-3/frontend/node_modules/
 phase-3/frontend/.next/
 phase-3/frontend/.env.local
 .vercel
+
+# Local Netlify folder
+.netlify

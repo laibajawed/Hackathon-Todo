@@ -1,6 +1,7 @@
 [build]
   command = "npm run build"
   publish = "out"
+  # Rebuild timestamp: 2026-02-21 to use HTTPS environment variables
 
 # SPA fallback - redirect all routes to index.html for client-side routing
 [[redirects]]
