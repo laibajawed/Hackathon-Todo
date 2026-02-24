@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database import get_session
-from models import Task, TaskStatus
+from models import Task, TaskStatus, TaskPriority
 from auth.dependencies import get_current_user_id
 from pydantic import BaseModel, Field
 from uuid import UUID
@@ -27,13 +27,17 @@ def sanitize_input(text: str) -> str:
 class TaskCreate(BaseModel):
     """Schema for creating a new task."""
     title: str = Field(min_length=1, max_length=200)
-    description: Optional[str] = Field(default=None, max_length=2000)
+    description: Optional[str] = Field(default=None, max_length=1000)
+    priority: Optional[TaskPriority] = Field(default=TaskPriority.MEDIUM)
+    tag: Optional[str] = Field(default=None, max_length=50)
 
 
 class TaskUpdate(BaseModel):
     """Schema for updating a task."""
     title: Optional[str] = Field(default=None, min_length=1, max_length=200)
-    description: Optional[str] = Field(default=None, max_length=2000)
+    description: Optional[str] = Field(default=None, max_length=1000)
+    priority: Optional[TaskPriority] = Field(default=None)
+    tag: Optional[str] = Field(default=None, max_length=50)
 
 
 class TaskResponse(BaseModel):
@@ -42,6 +46,8 @@ class TaskResponse(BaseModel):
     user_id: UUID
     title: str
     description: Optional[str]
+    priority: TaskPriority
+    tag: Optional[str]
     status: TaskStatus
     created_at: datetime
     updated_at: datetime
@@ -115,12 +121,15 @@ async def create_task(
     # Sanitize inputs to prevent XSS
     sanitized_title = sanitize_input(task_data.title.strip())
     sanitized_description = sanitize_input(task_data.description.strip()) if task_data.description else None
+    sanitized_tag = sanitize_input(task_data.tag.strip()) if task_data.tag else None
 
     # Create new task
     new_task = Task(
         user_id=current_user_id,
         title=sanitized_title,
         description=sanitized_description,
+        priority=task_data.priority or TaskPriority.MEDIUM,
+        tag=sanitized_tag,
         status=TaskStatus.PENDING
     )
 
@@ -177,6 +186,14 @@ async def update_task(
     # Update description if provided
     if task_data.description is not None:
         task.description = sanitize_input(task_data.description.strip()) if task_data.description.strip() else None
+
+    # Update priority if provided
+    if task_data.priority is not None:
+        task.priority = task_data.priority
+
+    # Update tag if provided
+    if task_data.tag is not None:
+        task.tag = sanitize_input(task_data.tag.strip()) if task_data.tag.strip() else None
 
     # Update timestamp
     task.updated_at = datetime.utcnow()

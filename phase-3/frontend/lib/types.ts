@@ -12,6 +12,15 @@ export enum TaskStatus {
 }
 
 /**
+ * Task priority level enum.
+ */
+export enum TaskPriority {
+  LOW = "low",
+  MEDIUM = "medium",
+  HIGH = "high",
+}
+
+/**
  * User entity.
  */
 export interface User {
@@ -28,6 +37,8 @@ export interface Task {
   user_id: string;
   title: string;
   description: string | null;
+  priority?: TaskPriority;
+  tag: string | null;
   status: TaskStatus;
   created_at: string;
   updated_at: string;
@@ -63,6 +74,8 @@ export interface UserSignin {
 export interface TaskCreate {
   title: string;
   description?: string;
+  priority?: TaskPriority;
+  tag?: string;
 }
 
 /**
@@ -71,6 +84,8 @@ export interface TaskCreate {
 export interface TaskUpdate {
   title?: string;
   description?: string;
+  priority?: TaskPriority;
+  tag?: string;
 }
 
 /**

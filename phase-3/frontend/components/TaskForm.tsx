@@ -1,19 +1,22 @@
 /**
  * TaskForm component for creating new tasks.
- * Provides input fields for title and description.
+ * Provides input fields for title, description, priority, and tag.
  */
 "use client";
 
 import { useState } from "react";
-import { TaskCreate } from "@/lib/types";
+import { TaskCreate, TaskPriority } from "@/lib/types";
 
 interface TaskFormProps {
   onSubmit: (taskData: TaskCreate) => Promise<void>;
+  onCancel: () => void;
 }
 
-export default function TaskForm({ onSubmit }: TaskFormProps) {
+export default function TaskForm({ onSubmit, onCancel }: TaskFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState<TaskPriority>(TaskPriority.MEDIUM);
+  const [tag, setTag] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -32,11 +35,15 @@ export default function TaskForm({ onSubmit }: TaskFormProps) {
       await onSubmit({
         title: title.trim(),
         description: description.trim() || undefined,
+        priority: priority,
+        tag: tag.trim() || undefined,
       });
 
       // Clear form on success
       setTitle("");
       setDescription("");
+      setPriority(TaskPriority.MEDIUM);
+      setTag("");
     } catch (err: any) {
       setError(err.message || "Failed to create task");
     } finally {
@@ -45,55 +52,118 @@ export default function TaskForm({ onSubmit }: TaskFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">Create New Task</h2>
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Title field with character counter */}
+      <div>
+        <div className="flex justify-between items-center mb-1">
+          <label htmlFor="title" className="text-sm font-medium text-deepBlack">
+            Title <span className="text-red-500">*</span>
+          </label>
+          <span className="text-xs text-mutedPlaceholder">
+            {title.length}/200
+          </span>
+        </div>
+        <input
+          id="title"
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value.slice(0, 200))}
+          placeholder="Enter task title"
+          required
+          disabled={loading}
+          className="w-full px-4 py-3 border border-abstractCircle rounded-xl focus:outline-none focus:ring-2 focus:ring-beigeButton/50 disabled:opacity-50 text-deepBlack bg-white placeholder-mutedPlaceholder transition-all"
+        />
+      </div>
 
+      {/* Description field with character counter */}
+      <div>
+        <div className="flex justify-between items-center mb-1">
+          <label htmlFor="description" className="text-sm font-medium text-deepBlack">
+            Description (optional)
+          </label>
+          <span className="text-xs text-mutedPlaceholder">
+            {description.length}/1000
+          </span>
+        </div>
+        <textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value.slice(0, 1000))}
+          placeholder="Enter task description"
+          rows={3}
+          disabled={loading}
+          className="w-full px-4 py-3 border border-abstractCircle rounded-xl focus:outline-none focus:ring-2 focus:ring-beigeButton/50 disabled:opacity-50 text-deepBlack bg-white placeholder-mutedPlaceholder transition-all"
+        />
+      </div>
+
+      {/* Priority selector */}
+      <div>
+        <label className="block text-sm font-medium text-deepBlack mb-2">
+          Priority
+        </label>
+        <div className="flex gap-2">
+          {[TaskPriority.LOW, TaskPriority.MEDIUM, TaskPriority.HIGH].map((level) => (
+            <button
+              key={level}
+              type="button"
+              onClick={() => setPriority(level)}
+              disabled={loading}
+              className={`flex-1 px-4 py-2 rounded-xl font-medium transition-all disabled:opacity-50 ${
+                priority === level
+                  ? 'bg-beigeButton text-deepBlack shadow-sm'
+                  : 'bg-abstractCircle text-deepBlack/70 hover:bg-abstractCircle/80'
+              }`}
+            >
+              {level.charAt(0).toUpperCase() + level.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tag field with character counter */}
+      <div>
+        <div className="flex justify-between items-center mb-1">
+          <label htmlFor="tag" className="text-sm font-medium text-deepBlack">
+            Tag (optional)
+          </label>
+          <span className="text-xs text-mutedPlaceholder">
+            {tag.length}/50
+          </span>
+        </div>
+        <input
+          id="tag"
+          type="text"
+          value={tag}
+          onChange={(e) => setTag(e.target.value.slice(0, 50))}
+          placeholder="e.g., work, personal"
+          disabled={loading}
+          className="w-full px-4 py-3 border border-abstractCircle rounded-xl focus:outline-none focus:ring-2 focus:ring-beigeButton/50 disabled:opacity-50 text-deepBlack bg-white placeholder-mutedPlaceholder transition-all"
+        />
+      </div>
+
+      {/* Error display */}
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-sm text-red-800">{error}</p>
+        <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-xl">
+          <p className="text-sm text-red-600">{error}</p>
         </div>
       )}
 
-      <div className="space-y-4">
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-            Title <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="title"
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter task title"
-            maxLength={200}
-            required
-            disabled={loading}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 text-gray-900 bg-white"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-            Description (optional)
-          </label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter task description"
-            maxLength={2000}
-            rows={3}
-            disabled={loading}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 text-gray-900 bg-white"
-          />
-        </div>
-
+      {/* Action buttons */}
+      <div className="flex gap-3 pt-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={loading}
+          className="flex-1 px-4 py-3 bg-abstractCircle text-deepBlack font-semibold rounded-xl hover:bg-abstractCircle/80 disabled:opacity-50 transition-colors"
+        >
+          Cancel
+        </button>
         <button
           type="submit"
           disabled={loading || !title.trim()}
-          className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 px-4 py-3 bg-beigeButton text-deepBlack font-semibold rounded-xl hover:bg-beigeButton/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {loading ? "Creating..." : "Create Task"}
+          {loading ? 'Creating...' : 'Create Task'}
         </button>
       </div>
     </form>

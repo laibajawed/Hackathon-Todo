@@ -17,6 +17,13 @@ class TaskStatus(str, Enum):
     COMPLETED = "completed"
 
 
+class TaskPriority(str, Enum):
+    """Task priority level enum."""
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
 class User(SQLModel, table=True):
     """
     User model for authentication and task ownership.
@@ -45,7 +52,9 @@ class Task(SQLModel, table=True):
         id: Unique task identifier (UUID)
         user_id: Foreign key to User.id (owner of the task)
         title: Task title (required, max 200 chars)
-        description: Optional task description (max 2000 chars)
+        description: Optional task description (max 1000 chars)
+        priority: Task priority level (low, medium, high)
+        tag: Optional task tag (max 50 chars)
         status: Task completion status (pending or completed)
         created_at: Task creation timestamp
         updated_at: Last update timestamp
@@ -55,7 +64,9 @@ class Task(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     user_id: UUID = Field(foreign_key="user.id", index=True, sa_column_kwargs={"nullable": False})
     title: str = Field(min_length=1, max_length=200, sa_column_kwargs={"nullable": False})
-    description: Optional[str] = Field(default=None, max_length=2000)
+    description: Optional[str] = Field(default=None, max_length=1000)
+    priority: TaskPriority = Field(default=TaskPriority.MEDIUM, sa_column_kwargs={"nullable": False})
+    tag: Optional[str] = Field(default=None, max_length=50)
     status: TaskStatus = Field(default=TaskStatus.PENDING, sa_column_kwargs={"nullable": False})
     created_at: datetime = Field(default_factory=datetime.utcnow, sa_column_kwargs={"nullable": False})
     updated_at: datetime = Field(default_factory=datetime.utcnow, sa_column_kwargs={"nullable": False})

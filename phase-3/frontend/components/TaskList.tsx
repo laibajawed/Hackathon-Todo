@@ -4,32 +4,41 @@
  */
 "use client";
 
-import { Task } from "@/lib/types";
+import { Task, TaskPriority } from "@/lib/types";
 import TaskItem from "./TaskItem";
 
 interface TaskListProps {
   tasks: Task[];
   loading: boolean;
   onToggle: (taskId: string) => Promise<void>;
-  onUpdate: (taskId: string, title: string, description: string) => Promise<void>;
+  onUpdate: (taskId: string, title: string, description: string, priority: TaskPriority, tag: string) => Promise<void>;
   onDelete: (taskId: string) => Promise<void>;
+  onCreateTask?: () => void;
 }
 
-export default function TaskList({ tasks, loading, onToggle, onUpdate, onDelete }: TaskListProps) {
+export default function TaskList({ tasks, loading, onToggle, onUpdate, onDelete, onCreateTask }: TaskListProps) {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-beigeButton"></div>
       </div>
     );
   }
 
   if (tasks.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="text-6xl mb-4">📝</div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">No tasks yet</h3>
-        <p className="text-gray-600">Create your first task to get started!</p>
+      <div className="flex flex-col items-center justify-center py-20 px-4">
+        <p className="text-center text-gray-700 text-lg mb-6 max-w-md">
+          No tasks yet. Create your first task to get started on your productivity journey.
+        </p>
+        {onCreateTask && (
+          <button
+            onClick={onCreateTask}
+            className="px-6 py-3 bg-beigeButton text-deepBlack font-semibold rounded-xl hover:bg-beigeButton/90 focus:outline-none focus:ring-2 focus:ring-beigeButton/50 transition-colors"
+          >
+            + Create Task
+          </button>
+        )}
       </div>
     );
   }

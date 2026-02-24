@@ -104,7 +104,9 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "title": {"type": "string", "minLength": 1, "maxLength": 200, "description": "Task title"},
-                    "description": {"type": "string", "maxLength": 2000, "description": "Optional task description"}
+                    "description": {"type": "string", "maxLength": 1000, "description": "Optional task description"},
+                    "priority": {"type": "string", "enum": ["low", "medium", "high"], "default": "medium", "description": "Task priority level"},
+                    "tag": {"type": "string", "maxLength": 50, "description": "Optional task tag"}
                 },
                 "required": ["title"]
             }
@@ -122,13 +124,15 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="update_task",
-            description="Update task title and/or description",
+            description="Update task title, description, priority, and/or tag",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "task_id": {"type": "string", "description": "UUID of the task to update"},
                     "title": {"type": "string", "minLength": 1, "maxLength": 200, "description": "New task title"},
-                    "description": {"type": "string", "maxLength": 2000, "description": "New task description"}
+                    "description": {"type": "string", "maxLength": 1000, "description": "New task description"},
+                    "priority": {"type": "string", "enum": ["low", "medium", "high"], "description": "New task priority level"},
+                    "tag": {"type": "string", "maxLength": 50, "description": "New task tag"}
                 },
                 "required": ["task_id"]
             }
@@ -203,6 +207,8 @@ async def handle_list_tasks(status: Optional[str] = None, limit: int = 50) -> st
                     "id": str(task.id),
                     "title": task.title,
                     "description": task.description,
+                    "priority": task.priority,
+                    "tag": task.tag,
                     "status": task.status,
                     "created_at": task.created_at.isoformat(),
                 }
@@ -220,11 +226,11 @@ async def handle_list_tasks(status: Optional[str] = None, limit: int = 50) -> st
         return format_error_response(str(e), "LIST_FAILED")
 
 
-async def handle_create_task(title: str, description: Optional[str] = None) -> str:
+async def handle_create_task(title: str, description: Optional[str] = None, priority: str = "medium", tag: Optional[str] = None) -> str:
     """Create task with lazy imports."""
     from uuid import UUID
     from datetime import datetime
-    from models import Task
+    from models import Task, TaskPriority
     from tools import sanitize_input, format_error_response, format_success_response
 
     try:
@@ -232,12 +238,15 @@ async def handle_create_task(title: str, description: Optional[str] = None) -> s
         UUID(user_id)
         title_clean = sanitize_input(title)
         description_clean = sanitize_input(description) if description else None
+        tag_clean = sanitize_input(tag) if tag else None
 
         async with get_session_maker()() as session:
             task = Task(
                 user_id=UUID(user_id),
                 title=title_clean,
                 description=description_clean,
+                priority=TaskPriority(priority),
+                tag=tag_clean,
                 status="pending",
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow(),
@@ -251,6 +260,8 @@ async def handle_create_task(title: str, description: Optional[str] = None) -> s
                     "id": str(task.id),
                     "title": task.title,
                     "description": task.description,
+                    "priority": task.priority,
+                    "tag": task.tag,
                     "status": task.status,
                 },
                 "message": f"Task '{task.title}' created successfully"
@@ -305,11 +316,11 @@ async def handle_toggle_task_status(task_id: str) -> str:
         return format_error_response(str(e), "TOGGLE_FAILED")
 
 
-async def handle_update_task(task_id: str, title: Optional[str] = None, description: Optional[str] = None) -> str:
+async def handle_update_task(task_id: str, title: Optional[str] = None, description: Optional[str] = None, priority: Optional[str] = None, tag: Optional[str] = None) -> str:
     """Update task with lazy imports."""
     from uuid import UUID
     from sqlalchemy import select
-    from models import Task
+    from models import Task, TaskPriority
     from tools import sanitize_input, format_error_response, format_success_response
 
     try:
@@ -331,6 +342,10 @@ async def handle_update_task(task_id: str, title: Optional[str] = None, descript
                 task.title = sanitize_input(title)
             if description is not None:
                 task.description = sanitize_input(description)
+            if priority:
+                task.priority = TaskPriority(priority)
+            if tag is not None:
+                task.tag = sanitize_input(tag) if tag else None
 
             session.add(task)
             await session.commit()
@@ -341,6 +356,8 @@ async def handle_update_task(task_id: str, title: Optional[str] = None, descript
                     "id": str(task.id),
                     "title": task.title,
                     "description": task.description,
+                    "priority": task.priority,
+                    "tag": task.tag,
                     "status": task.status
                 },
                 "message": f"Task '{task.title}' updated successfully"
