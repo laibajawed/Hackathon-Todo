@@ -18,7 +18,7 @@ export default function TaskItem({ task, onToggle, onUpdate, onDelete }: TaskIte
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description || "");
-  const [editPriority, setEditPriority] = useState<TaskPriority>(task.priority);
+  const [editPriority, setEditPriority] = useState<TaskPriority>(task.priority || TaskPriority.MEDIUM);
   const [editTag, setEditTag] = useState(task.tag || "");
   const [loading, setLoading] = useState(false);
 
@@ -56,7 +56,7 @@ export default function TaskItem({ task, onToggle, onUpdate, onDelete }: TaskIte
   const handleCancel = () => {
     setEditTitle(task.title);
     setEditDescription(task.description || "");
-    setEditPriority(task.priority);
+    setEditPriority(task.priority || TaskPriority.MEDIUM);
     setEditTag(task.tag || "");
     setIsEditing(false);
   };
