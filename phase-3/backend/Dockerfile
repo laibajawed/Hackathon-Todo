@@ -24,5 +24,5 @@ COPY . .
 # Expose port 7860 (Hugging Face Spaces default)
 EXPOSE 7860
 
-# Run uvicorn server
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Run database migrations and then start uvicorn server
+CMD ["sh", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 7860"]
