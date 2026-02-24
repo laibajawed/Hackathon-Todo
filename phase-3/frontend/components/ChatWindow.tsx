@@ -117,26 +117,26 @@ export default function ChatWindow({ userId, token, onClose, onTasksChanged }: C
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-white shadow-lg rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-white shadow-lg rounded-xl overflow-hidden">
       {/* Header */}
-      <div className="bg-blue-600 text-white p-4 flex justify-between items-center flex-shrink-0">
+      <div className="bg-beigeButton text-deepBlack p-4 flex justify-between items-center flex-shrink-0">
         <div>
           <h1 className="text-xl font-bold">Todo AI Assistant</h1>
-          <p className="text-sm text-blue-100">
+          <p className="text-sm text-deepBlack/70">
             {conversationId ? `Conversation #${conversationId}` : 'New conversation'}
           </p>
         </div>
         <div className="flex space-x-2">
           <button
             onClick={handleNewConversation}
-            className="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            className="bg-deepBlack hover:bg-deepBlack/90 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
           >
             New Chat
           </button>
           {onClose && (
             <button
               onClick={onClose}
-              className="bg-blue-700 hover:bg-blue-800 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+              className="bg-deepBlack hover:bg-deepBlack/90 text-white px-3 py-2 rounded-xl text-sm font-medium transition-colors"
               aria-label="Close chat"
             >
               ✕
@@ -146,9 +146,9 @@ export default function ChatWindow({ userId, token, onClose, onTasksChanged }: C
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 chat-messages min-h-0">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 chat-messages min-h-0 bg-warmOffWhite">
         {messages.length === 0 && (
-          <div className="text-center text-gray-500 mt-8">
+          <div className="text-center text-deepBlack/60 mt-8">
             <p className="text-lg font-medium mb-2">Welcome to Todo AI Assistant!</p>
             <p className="text-sm">
               Try saying things like:
@@ -169,10 +169,10 @@ export default function ChatWindow({ userId, token, onClose, onTasksChanged }: C
             }`}
           >
             <div
-              className={`max-w-[80%] rounded-lg p-3 ${
+              className={`max-w-[80%] rounded-xl p-3 ${
                 message.role === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-900'
+                  ? 'bg-beigeButton text-deepBlack'
+                  : 'bg-white text-deepBlack border border-abstractCircle'
               }`}
             >
               <p className="whitespace-pre-wrap break-words">{message.content}</p>
@@ -182,15 +182,15 @@ export default function ChatWindow({ userId, token, onClose, onTasksChanged }: C
 
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-lg p-3">
+            <div className="bg-white border border-abstractCircle rounded-xl p-3">
               <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-dot"></div>
+                <div className="w-2 h-2 bg-beigeButton rounded-full animate-bounce-dot"></div>
                 <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-dot"
+                  className="w-2 h-2 bg-beigeButton rounded-full animate-bounce-dot"
                   style={{ animationDelay: '0.2s' }}
                 ></div>
                 <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-dot"
+                  className="w-2 h-2 bg-beigeButton rounded-full animate-bounce-dot"
                   style={{ animationDelay: '0.4s' }}
                 ></div>
               </div>
@@ -199,7 +199,7 @@ export default function ChatWindow({ userId, token, onClose, onTasksChanged }: C
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          <div className="bg-red-500/10 border border-red-500/50 text-red-600 px-4 py-3 rounded-xl">
             <p className="text-sm">{error}</p>
           </div>
         )}
@@ -208,21 +208,21 @@ export default function ChatWindow({ userId, token, onClose, onTasksChanged }: C
       </div>
 
       {/* Input */}
-      <div className="border-t border-gray-200 p-4 flex-shrink-0 bg-white">
+      <div className="border-t border-abstractCircle p-4 flex-shrink-0 bg-white">
         <div className="flex space-x-2">
           <textarea
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type your message... (Enter to send, Shift+Enter for new line)"
-            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="flex-1 border border-abstractCircle rounded-xl px-4 py-2 text-deepBlack bg-white placeholder-mutedPlaceholder focus:outline-none focus:ring-2 focus:ring-beigeButton/50 resize-none transition-all"
             rows={2}
             disabled={isLoading}
           />
           <button
             onClick={handleSend}
             disabled={!inputValue.trim() || isLoading}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-medium transition-colors self-end"
+            className="bg-beigeButton hover:bg-beigeButton/90 disabled:bg-abstractCircle disabled:cursor-not-allowed text-deepBlack px-6 py-2 rounded-xl font-semibold transition-colors self-end"
           >
             Send
           </button>

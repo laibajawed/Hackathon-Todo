@@ -23,7 +23,7 @@ export default function FloatingChatWidget({ onTasksChanged }: FloatingChatWidge
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition-all hover:scale-110 z-50"
+          className="fixed bottom-6 right-6 bg-beigeButton hover:bg-beigeButton/90 text-deepBlack rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition-all hover:scale-110 z-50"
           aria-label="Open chat"
         >
           <svg
@@ -45,7 +45,7 @@ export default function FloatingChatWidget({ onTasksChanged }: FloatingChatWidge
 
       {/* Floating Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-96 h-[600px] shadow-2xl rounded-lg z-50 animate-slide-up">
+        <div className="fixed bottom-6 right-6 w-96 h-[600px] shadow-2xl rounded-xl z-50 animate-slide-up">
           <ChatWindow
             userId={user.id}
             token={token}
