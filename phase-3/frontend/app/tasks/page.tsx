@@ -11,7 +11,7 @@ import FloatingChatWidget from "@/components/FloatingChatWidget";
 import { TaskCreate, TaskPriority } from "@/lib/types";
 
 type StatusFilter = "all" | "active" | "done";
-type PriorityFilter = "all" | "low" | "medium" | "high";
+type PriorityFilter = "all" | "LOW" | "MEDIUM" | "HIGH";
 type SortOption = "dateCreated" | "dateUpdated";
 
 export default function TasksPage() {
@@ -200,9 +200,9 @@ export default function TasksPage() {
                   All
                 </button>
                 <button
-                  onClick={() => setPriorityFilter("low")}
+                  onClick={() => setPriorityFilter("LOW")}
                   className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${
-                    priorityFilter === "low"
+                    priorityFilter === "LOW"
                       ? "bg-beigeButton text-deepBlack"
                       : "bg-white text-deepBlack border border-abstractCircle hover:bg-abstractCircle/30"
                   }`}
@@ -210,9 +210,9 @@ export default function TasksPage() {
                   Low
                 </button>
                 <button
-                  onClick={() => setPriorityFilter("medium")}
+                  onClick={() => setPriorityFilter("MEDIUM")}
                   className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${
-                    priorityFilter === "medium"
+                    priorityFilter === "MEDIUM"
                       ? "bg-beigeButton text-deepBlack"
                       : "bg-white text-deepBlack border border-abstractCircle hover:bg-abstractCircle/30"
                   }`}
@@ -220,9 +220,9 @@ export default function TasksPage() {
                   Medium
                 </button>
                 <button
-                  onClick={() => setPriorityFilter("high")}
+                  onClick={() => setPriorityFilter("HIGH")}
                   className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${
-                    priorityFilter === "high"
+                    priorityFilter === "HIGH"
                       ? "bg-beigeButton text-deepBlack"
                       : "bg-white text-deepBlack border border-abstractCircle hover:bg-abstractCircle/30"
                   }`}
